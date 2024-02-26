@@ -11,9 +11,9 @@ Metro, named after the great Metro Boomin, is a bash script made to automate the
 
 ### Usage
 ```bash
-sudo ./metro.sh [-h] [-i interface]
+sudo ./metro [-h] [-i interface]
 -h		display help message
 -i		interface
-ex: sudo ./metro.sh -i eth0
+ex: sudo ./metro -i eth0
 ```
 ![Alt Text](./pic/metro.png)
