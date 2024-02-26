@@ -352,7 +352,7 @@ rev() {
         read -p "LPORT (default 4444): " lport
         lport=${lport:-4444}
 
-        read -p "File name(default shell): " file_name
+        read -p "File name (default shell): " file_name
         file_name=${file_name:-"shell"}  
 
         echo
