@@ -7,4 +7,4 @@ Metro is a Bash script made to automate the process of testing a variety of simp
 sudo ./metro.sh [-h] [-i interface]
 -h		display help message
 -i		interface
-ex: sudo ./metro.sh eth0"
+ex: sudo ./metro.sh eth0
