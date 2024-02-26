@@ -13,6 +13,7 @@ fi
 
 
 setup() {
+        echo
 	echo -e "\e[34m[+]\e[0m  Updating repositories" 
 	sleep 1
 	echo
