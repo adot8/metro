@@ -1,9 +1,10 @@
-## metro
+## Metro
 
-Metro is a Bash script made to automate the process of testing a variety of simple attacks for an SIEM to detect.
+Metro is a bash script made to automate the process of testing a variety of simple attacks for an SIEM to detect.
 
 ## Installation
 `chmod +x setup.sh`
+
 `sudo ./setup.sh`
 
 ### Usage
