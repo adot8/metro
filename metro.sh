@@ -17,7 +17,7 @@ help() {
 cleanup() {
 	echo
 	echo
-	 echo -e "\e[34m[+]\e[0m  Stopping attack..."
+	 echo -e "\e[34m[+]\e[0m  Stopping attacks.."
 	sudo echo "0" > /proc/sys/net/ipv4/ip_forward 2>/dev/null
 	sudo iptables -t nat -D PREROUTING -p tcp --destination-port 80 -j REDIRECT --to-port $port 2>/dev/null
 	pkill -f "python3 -m http.server" 2>/dev/null
