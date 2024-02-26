@@ -28,7 +28,7 @@ setup() {
 	echo
  	chmod +x metro.sh
 	echo -e "\e[32m[+]\e[0m  Done!" 
- 	echo -e "\e[32m[+]\e[0m  Run ./metro.sh -h" 
+ 	echo -e "\e[32m[+]\e[0m  Run ./metro -h" 
 	exit 0
 }
 
