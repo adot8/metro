@@ -19,10 +19,10 @@ setup() {
 	sudo apt-get update
 	sleep 1
 	echo
-	echo -e "\e[34m[+]\e[0m  Installing dhcpig and bettercap" 
+	echo -e "\e[34m[+]\e[0m  Installing dhcpig, bettercap and xterm" 
 	sleep 1
 	echo
-	sudo apt install dhcpig bettercap bettercap-caplets
+	sudo apt install dhcpig bettercap bettercap-caplets xterm
 	sleep 1
 	echo
  	chmod +x metro.sh
