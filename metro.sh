@@ -27,6 +27,17 @@ cleanup() {
 	menu
 }
 
+#check if ran as root
+check_root(){
+	if [ "$EUID" -ne 0 ]
+  then 
+  	echo
+  	echo -e "\e[31m[!]\e[0m Please run as root"
+  	echo
+  exit 0
+fi
+
+}
 # Function to check if the interface exists
 check_interface() {
 	if ! ip link show $1 >/dev/null 2>&1; then
@@ -146,7 +157,7 @@ pod() {
 		case $random in
 			Y|y) # launch random source IP flood
 				echo 
-				 echo -e "\e[34m[+]\e[0m  Flooding $target_ip with $packets packets..." 
+				echo -e "\e[34m[+]\e[0m  Flooding $target_ip with $packets packets..." 
 				sleep 1 
 				echo
 				echo -e "\e[34m[+]\e[0m Press Ctrl-C to stop attack"
@@ -406,7 +417,8 @@ while getopts "hi:" option; do
 	esac
 done
 
-# Check if the interface exists
+# Check root and if the interface exists
+check_root
 check_interface $iface
 
 clear
