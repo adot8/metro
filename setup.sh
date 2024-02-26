@@ -26,7 +26,7 @@ setup() {
 	sudo apt install dhcpig bettercap bettercap-caplets xterm figlet
 	sleep 1
 	echo
- 	chmod +x metro.sh
+ 	chmod +x metro
 	echo -e "\e[32m[+]\e[0m  Done!" 
  	echo -e "\e[32m[+]\e[0m  Run ./metro -h" 
 	exit 0
