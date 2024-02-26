@@ -9,7 +9,7 @@ help() {
 	echo "-h		display help message"
 	echo "-i		interface"
 	echo
-	echo "ex: sudo ./metro.sh eth0"
+	echo "ex: sudo ./metro.sh -i eth0"
 	exit 0
 }
 
