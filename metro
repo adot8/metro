@@ -4,12 +4,12 @@
 # help function
 help() {
 	echo
-	echo "Usage: sudo ./metro.sh [-h] [-i]"
+	echo "Usage: sudo ./metro [-h] [-i]"
 	echo
 	echo "-h		display help message"
 	echo "-i		interface"
 	echo
-	echo "ex: sudo ./metro.sh -i eth0"
+	echo "ex: sudo ./metro -i eth0"
 	exit 0
 }
 
