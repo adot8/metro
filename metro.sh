@@ -333,7 +333,7 @@ rev() {
     while true; do
         echo
         while true; do
-            read -p "LHOST(your ip): " lhost
+            read -p "LHOST (your ip): " lhost
             # regex to match ipv4 address...thanks chatgpt for this one :3
             ipv4_regex='^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
             ipv4_regex+='(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.'
