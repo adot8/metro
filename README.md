@@ -1,4 +1,4 @@
-## Metro
+## METRO!!
 
 Metro, named after the great Metro Boomin, is a bash script made to automate the process of testing a variety of simple attacks for an SIEM to detect.
 
